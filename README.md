@@ -5,7 +5,7 @@
 Author's official repository for RGBD-GAN.
 
 ## Results
-RGBD image generation models are trained on unlabeled RGB image datasets.
+RGBD image generation models conditioned on camera paremeters are trained on unlabeled RGB image datasets.
 
 <img src="https://github.com/nogu-atsu/RGBD-GAN/blob/master/figs/overview.png">
 (Odd rows: RGB, even rows: depth with colormap)
