@@ -10,6 +10,9 @@ RGBD image generation models conditioned on camera paremeters are trained on unl
 <img src="https://github.com/nogu-atsu/RGBD-GAN/blob/master/figs/overview.png">
 (Odd rows: RGB, even rows: depth with colormap)
 
+
+<img src="https://github.com/nogu-atsu/RGBD-GAN/blob/master/figs/output.gif">
+
 ## Pipeline
 <img src="https://github.com/nogu-atsu/RGBD-GAN/blob/master/figs/pipeline.png" width="512">
 
