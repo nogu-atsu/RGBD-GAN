@@ -1,6 +1,6 @@
 # RGBD-GAN: Unsupervised 3D Representation Learning From Natural Image Datasets via RGBD Image Synthesis
 
-[[arXiv]](https://arxiv.org/abs/1909.12573)
+[[arXiv]](https://arxiv.org/abs/1909.12573) [ICLR2020]
 
 Author's official repository for RGBD-GAN.
 
@@ -21,10 +21,10 @@ Source codes will be released soon．
 
 ## Citation
 ```
-@article{RGBDGAN2019,
+@inproceedings{RGBDGAN,
   title={RGBD-GAN: Unsupervised 3D Representation Learning From Natural Image Datasets via RGBD Image Synthesis},
   author={Noguchi, Atsuhiro and Harada, Tatsuya},
-  journal={arXiv preprint arXiv:1909.12573},
-  year={2019}
+  booktitle={International Conference on Learning Representations},
+  year={2020},
 }
 ```
