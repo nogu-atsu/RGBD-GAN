@@ -1,5 +1,5 @@
-dataset_path: /data/unagi0/noguchi/dataset/rendered_shapenet/car_iclr_final
-image_path: /data/unagi0/noguchi/dataset/rendered_shapenet/car_iclr_final/*.png
+dataset_path: your_dataset_path  # please change
+image_path: image_dir/*.png  # please change
 
 nvprof: False
 seed: 19260817
@@ -60,11 +60,10 @@ test_z_translate: 0
 use_mpi: False # 'Whether to use MPI for multi-GPU training.')
 comm_name: 'pure_nccl' # 'ChainerMN communicator name')
 enable_cuda_profiling: False # 'Whether to enable CUDA profiling.')
-train_img_list: "img_list.txt"  # paths to training images
 #
 #
 ## hps (I/O)
-out: '/data/unagi0/noguchi/M2/RGB_synthesis/test' # 'Directory to output the result')
+out: 'your_out_dir' # Directory to output the result. please change
 auto_resume_dir: '' # 'Directory for loading the saved models')
 dataset_config: '' # 'Dataset config json')
 
@@ -86,30 +85,3 @@ fid_skip_first: False # 'Whether to skip FID calculation when iter = 0')
 style_mixing_rate: 0.0 # ' Style Mixing Prob')
 enable_blur: False # 'Enable blur function after upscaling/downscaling')
 
-
-stage2reso:
-  0: 4
-  1: 8
-  2: 8
-  3: 16
-  4: 16
-  5: 32
-  6: 32
-  7: 64
-  8: 64
-  9: 128
-  10: 128
-  11: 256
-  12: 256
-  13: 512
-  14: 512
-  15: 1024
-  16: 1024
-  17: 1024
-
-gpu_lr:
-  1: {15: 1.5, 16: 1.5, 17: 1.5}
-  2: {13: 1.5, 14: 1.5, 15: 2, 16: 2, 17: 2}
-  3: {11: 1.5, 12: 1.5, 13: 2, 14: 2, 15: 2.5, 16: 2.5, 17: 2.5}
-  4: {11: 1.5, 12: 1.5, 13: 2, 14: 2, 15: 3, 16: 3, 17: 3}
-  8: {9: 1.5, 10: 1.5, 11: 2, 12: 2, 13: 3, 14: 3, 15: 3, 16: 3, 17: 3}
