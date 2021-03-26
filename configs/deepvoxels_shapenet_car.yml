@@ -1,5 +1,5 @@
-dataset_path: /data/unagi0/noguchi/dataset/rendered_shapenet/car_iclr_final
-image_path: /data/unagi0/noguchi/dataset/rendered_shapenet/car_iclr_final/*.png
+dataset_path: your_dataset_path  # please change
+image_path: image_dir/*.png  # please change
 
 nvprof: False
 seed: 19260817
@@ -65,7 +65,7 @@ comm_name: 'pure_nccl' # 'ChainerMN communicator name')
 #
 #
 ## hps (I/O)
-out: '/data/unagi0/noguchi/M2/RGB_synthesis/test_20210326' # 'Directory to output the result')
+out: 'your_out_dir' # Directory to output the result. please change
 auto_resume_dir: '' # 'Directory for loading the saved models')
 dataset_config: '' # 'Dataset config json')
 
