@@ -11,8 +11,7 @@ lambda_gp: 1.0 #'Lambda GP')
 sn: False
 smoothing: 0.999 # '')
 keep_smoothed_gen: False # 'Whether to keep a smoothed version of generator.')
-dynamic_batch_size: '16,16,16,16,16,16,16,16,16,8,8,4,4,2,2,1,1'
-#                     'comma-split list of dynamic batch size w.p.t. stage')
+
 batchsize: 10
 stage_interval: 0,0,0,0,0,0,0,0
 max_stage: 11 # 'Size of image.')
@@ -61,7 +60,6 @@ test_z_translate: 0
 uniform_distribution: True
 
 ## hps (device)
-gpu: 1 # 'GPU ID (negative value indicates CPU)')
 use_mpi: False # 'Whether to use MPI for multi-GPU training.')
 comm_name: 'pure_nccl' # 'ChainerMN communicator name')
 #
