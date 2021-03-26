@@ -1,0 +1,90 @@
+dataset_path: /data/unagi0/noguchi/dataset/rendered_shapenet/car_iclr_final
+image_path: /data/unagi0/noguchi/dataset/rendered_shapenet/car_iclr_final/*.png
+
+nvprof: False
+seed: 19260817
+adam_alpha_g: 0.001 # 'alpha in Adam optimizer')
+adam_alpha_d: 0.003 # 'alpha in Adam optimizer')
+adam_beta1: 0.0 # 'beta1 in Adam optimizer')
+adam_beta2: 0.999 # 'beta2 in Adam optimizer')
+lambda_gp: 1.0 #'Lambda GP')
+sn: False
+smoothing: 0.999 # '')
+keep_smoothed_gen: False # 'Whether to keep a smoothed version of generator.')
+dynamic_batch_size: '16,16,16,16,16,16,16,16,16,8,8,4,4,2,2,1,1'
+#                     'comma-split list of dynamic batch size w.p.t. stage')
+batchsize: 10
+stage_interval: 0,0,0,0,0,0,0,0
+max_stage: 11 # 'Size of image.')
+iteration: 150000
+#
+start_rotation: 0
+start_occlusion_aware: 0
+#
+auto_resume: False # 'Whether to automatically resume')
+#
+ch: 256 # '#Channels')
+debug_start_instance: 0 # 'Change starting iteration for debugging.')
+#
+## architecture
+generator_architecture: deepvoxels # stylegan, dcgan, deepvoxels
+bigan: False
+rotate_conv_input: False
+res_dis: True
+focal_loss_gamma: 2.
+lambda_depth: 10
+depth_min: 0.6
+occlusion_type: accumulative
+
+## use camera parameter's posterior
+use_posterior: False
+
+## camera parameter prior
+## rotation angle range (+-radian)
+x_rotate: 0.3054
+y_rotate: 3.1415
+z_rotate: 0
+# translation range
+x_translate: 0
+y_translate: 0
+z_translate: 0
+
+# test angles
+test_x_rotate: 0
+test_y_rotate: 3.1415
+test_z_rotate: 0
+test_x_translate: 0
+test_y_translate: 0
+test_z_translate: 0
+
+# sample from uniform distribution (or triangular distribution)
+uniform_distribution: True
+
+## hps (device)
+gpu: 1 # 'GPU ID (negative value indicates CPU)')
+use_mpi: False # 'Whether to use MPI for multi-GPU training.')
+comm_name: 'pure_nccl' # 'ChainerMN communicator name')
+#
+#
+## hps (I/O)
+out: '/data/unagi0/noguchi/M2/RGB_synthesis/test_20210326' # 'Directory to output the result')
+auto_resume_dir: '' # 'Directory for loading the saved models')
+dataset_config: '' # 'Dataset config json')
+
+dataset_worker_num': 12 # 'Number of threads in dataset loader'
+#
+snapshot_interval: 10000 # 'Interval of snapshot')
+evaluation_sample_interval: 50 # 'Interval of evaluation sampling')
+display_interval: 10 # 'Interval of displaying log to console')
+get_model_from_interation: '' # 'Load this iteration (it is a string)')
+#
+## hps FID
+fid_interval: 0 # 'Enable FID when > 0')
+fid_real_stat: '' # 'Save NPZ of real images')
+fid_clfs_type: '' # 'i2v_v5/inception')
+fid_clfs_path: '' # 'classifier path')
+fid_skip_first: False # 'Whether to skip FID calculation when iter = 0')
+#
+## Style GAN
+style_mixing_rate: 0.0 # ' Style Mixing Prob')
+enable_blur: False # 'Enable blur function after upscaling/downscaling')
