@@ -3,6 +3,8 @@
 ## commands
 ```
 python train_rgbd.py -g 5 --config configs/dcgan_shapenet_car.yml
+python train_rgbd.py -g 5 --config configs/stylegan_shapenet_car.yml
+python train_rgbd.py -g 5 --config configs/deepvoxels_shapenet_car.yml
 ```
 
 ## paper
