@@ -1,12 +1,13 @@
-import sys
-import os
 import math
+import os
+import sys
+
 import chainer
 import chainer.functions as F
 import chainer.links as L
-from chainer.link_hooks.spectral_normalization import SpectralNormalization
-from chainer import Variable
 import numpy as np
+from chainer import Variable
+from chainer.link_hooks.spectral_normalization import SpectralNormalization
 
 sys.path.append(os.path.dirname(__file__))
 sys.path.append(os.path.abspath(os.path.dirname(__file__)) + os.path.sep + os.path.pardir)
@@ -442,9 +443,6 @@ class Discriminator(chainer.Chain):
                 DiscriminatorBlock(ch // 2, ch, enable_blur=enable_blur, sn=sn, res=res),  # 64
                 DiscriminatorBlock(ch // 4, ch // 2, enable_blur=enable_blur, sn=sn, res=res),  # 128
             )
-            # DiscriminatorBlock(ch // 8, ch // 4, enable_blur=enable_blur, sn=sn, res=res),  # 256
-            # DiscriminatorBlock(ch // 16, ch // 8, enable_blur=enable_blur, sn=sn, res=res),  # 512
-            # DiscriminatorBlock(ch // 32, ch // 16, enable_blur=enable_blur, sn=sn, res=res), )  # 1024
 
             if not sn:
                 self.ins = chainer.ChainList(
@@ -454,9 +452,6 @@ class Discriminator(chainer.Chain):
                     EqualizedConv2d(3, ch, 1, 1, 0),
                     EqualizedConv2d(3, ch // 2, 1, 1, 0),
                     EqualizedConv2d(3, ch // 4, 1, 1, 0),
-                    # EqualizedConv2d(3, ch // 8, 1, 1, 0),
-                    # EqualizedConv2d(3, ch // 16, 1, 1, 0),
-                    # EqualizedConv2d(3, ch // 32, 1, 1, 0),
                 )
             else:
                 w = chainer.initializers.Uniform(1)
@@ -467,9 +462,6 @@ class Discriminator(chainer.Chain):
                     L.Convolution2D(3, ch, 1, 1, 0, initialW=w).add_hook(SpectralNormalization()),
                     L.Convolution2D(3, ch // 2, 1, 1, 0, initialW=w).add_hook(SpectralNormalization()),
                     L.Convolution2D(3, ch // 4, 1, 1, 0, initialW=w).add_hook(SpectralNormalization()),
-                    # L.Convolution2D(3, ch // 8, 1, 1, 0, initialW=w).add_hook(SpectralNormalization()),
-                    # L.Convolution2D(3, ch // 16, 1, 1, 0, initialW=w).add_hook(SpectralNormalization()),
-                    # L.Convolution2D(3, ch // 32, 1, 1, 0, initialW=w).add_hook(SpectralNormalization()),
                 )
 
             self.enable_blur = enable_blur
@@ -680,9 +672,6 @@ class DCGANGenerator(chainer.Chain):
                 DCGANBlock(ch, ch, enable_blur=enable_blur),  # 32
                 DCGANBlock(ch // 2, ch, enable_blur=enable_blur),  # 64
                 DCGANBlock(ch // 4, ch // 2, enable_blur=enable_blur),  # 128
-                # DCGANBlock(ch // 8, ch // 4, enable_blur=enable_blur),  # 256
-                # DCGANBlock(ch // 16, ch // 8, enable_blur=enable_blur),  # 512
-                # DCGANBlock(ch // 32, ch // 16, enable_blur=enable_blur)  # 1024
             )
             self.outs = chainer.ChainList(
                 EqualizedConv2d(ch, out_ch, 1, 1, 0, gain=1),
@@ -690,9 +679,6 @@ class DCGANGenerator(chainer.Chain):
                 EqualizedConv2d(ch, out_ch, 1, 1, 0, gain=1),
                 EqualizedConv2d(ch // 2, out_ch, 1, 1, 0, gain=1),
                 EqualizedConv2d(ch // 4, out_ch, 1, 1, 0, gain=1),
-                # EqualizedConv2d(ch // 8, out_ch, 1, 1, 0, gain=1),
-                # EqualizedConv2d(ch // 16, out_ch, 1, 1, 0, gain=1),
-                # EqualizedConv2d(ch // 32, out_ch, 1, 1, 0, gain=1)
             )
             if use_encoder:
                 self.enc = Encoder(ch, in_ch, enable_blur=enable_blur)
@@ -857,9 +843,6 @@ class Encoder(chainer.Chain):
                 DiscriminatorBlock(ch // 2, ch, enable_blur=enable_blur, sn=False, res=res, bn=True),  # 64
                 DiscriminatorBlock(ch // 4, ch // 2, enable_blur=enable_blur, sn=False, res=res, bn=True),  # 128
             )
-            # DiscriminatorBlock(ch // 8, ch // 4, enable_blur=enable_blur, sn=sn, res=res),  # 256
-            # DiscriminatorBlock(ch // 16, ch // 8, enable_blur=enable_blur, sn=sn, res=res),  # 512
-            # DiscriminatorBlock(ch // 32, ch // 16, enable_blur=enable_blur, sn=sn, res=res), )  # 1024
 
             self.ins = chainer.ChainList(
                 EqualizedConv2d(3, ch, 1, 1, 0),
@@ -868,9 +851,6 @@ class Encoder(chainer.Chain):
                 EqualizedConv2d(3, ch, 1, 1, 0),
                 EqualizedConv2d(3, ch // 2, 1, 1, 0),
                 EqualizedConv2d(3, ch // 4, 1, 1, 0),
-                # EqualizedConv2d(3, ch // 8, 1, 1, 0),
-                # EqualizedConv2d(3, ch // 16, 1, 1, 0),
-                # EqualizedConv2d(3, ch // 32, 1, 1, 0),
             )
 
             self.enable_blur = enable_blur

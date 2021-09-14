@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
 import chainer
-import chainer.functions as F
-from chainer import Variable
-import numpy as np
-from config import get_lr_scale_factor
-from scipy.stats import truncnorm
-
 import chainer.computational_graph as c
+import chainer.functions as F
+import numpy as np
+from chainer import Variable
 
 from common.loss_functions import loss_func_dcgan_dis, loss_func_dcgan_gen, loss_l2, LossFuncRotate, SmoothDepth
 from common.utils.copy_param import soft_copy_param
 from common.utils.pggan import downsize_real
+from config import get_lr_scale_factor
 
 
 def loss_func_dsgan(x, z, theta, tau=10):
@@ -23,46 +21,6 @@ def loss_func_dsgan(x, z, theta, tau=10):
     loss_ds_2 = F.minimum(F.sqrt(loss_ds_2), xp.full_like(loss_ds_2.array, tau))
     print(loss_ds_1.array.mean(), loss_ds_2.array.mean())
     return -F.mean(loss_ds_1) - F.mean(loss_ds_2)
-
-
-# def update_camera_matrices(mat, axis1, axis2, theta):
-#     """
-#     camera parameters update for get_camera_matrices function
-#     :param mat:
-#     :param axis1: int 0~2
-#     :param axis2: int 0~2
-#     :param theta: np array of rotation degree
-#     :return: camara matrices of minibatch
-#     differentiable!!
-#     """
-#     xp = chainer.backends.cuda.get_array_module(mat)
-#     rot = xp.zeros(mat.shape, dtype="float32")
-#     rot[:, [(axis2 + 1) % 3, 3], [(axis2 + 1) % 3, 3]] = 1
-#     rot = F.scatter_add(rot, [slice(None, None), axis1, axis1], F.cos(theta))
-#     rot = F.scatter_add(rot, [slice(None, None), axis1, axis2], -F.sin(theta))
-#     rot = F.scatter_add(rot, [slice(None, None), axis2, axis1], F.sin(theta))
-#     rot = F.scatter_add(rot, [slice(None, None), axis2, axis2], F.cos(theta))
-#     mat = F.matmul(rot, mat)
-#     return mat
-#
-#
-# def get_camera_matries(thetas):
-#     """
-#     generate camera matrices from thetas
-#     :param thetas: batchsize x 6, [x, y, z_rotation, x, y, z_translation]
-#     :return:
-#     """
-#     xp = chainer.backends.cuda.get_array_module(thetas)
-#     mat = xp.zeros((len(thetas), 4, 4), dtype="float32")
-#     mat[:, [0, 1, 2, 3], [0, 1, 2, 3]] = [1, 1, -1, 1]
-#     mat[:, 2, 3] = 1
-#
-#     for i in [1, 0, 2]:  # y, x, z_rotation
-#         mat = update_camera_matrices(mat, (i + 1) % 3, (i + 2) % 3, thetas[:, i])
-#
-#     mat = F.scatter_add(mat, [slice(None, None), slice(None, 3), 3], thetas[:, 3:])
-#
-#     return mat
 
 
 def update_camera_matrices(mat, axis1, axis2, theta):

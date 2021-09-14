@@ -1,21 +1,18 @@
-# this code is for
-import os, sys, math, time, random
-from pathlib import Path
-import numpy as np
 import argparse
-import cv2
+import math
+
 import chainer
-from chainer import functions as F
-from chainer import Variable
+import cv2
+import numpy as np
+import yaml
 from PIL import Image
+from chainer import functions as F
 from tqdm import tqdm
 
-from evaluation import load_inception_model
-from evaluation import get_mean_cov, FID
-import yaml
 import utils.yaml_utils as yaml_utils
+from evaluation import get_mean_cov, FID
+from evaluation import load_inception_model
 from train_rgbd import setup_generator, prepare_dataset, CameraParamPrior
-
 from updater_deepvoxels import get_camera_matries
 
 

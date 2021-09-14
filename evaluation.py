@@ -1,19 +1,17 @@
-import os
-import sys
 import math
-
-import numpy as np
-from PIL import Image
-import scipy.linalg
+import os
 
 import chainer
 import chainer.cuda
+import chainer.functions as F
+import numpy as np
+import scipy.linalg
+from PIL import Image
 from chainer import Variable
 from chainer import serializers
-from chainer import cuda
-import chainer.functions as F
 
 from source.inception.inception_score import inception_score, Inception
+
 
 def gen_images(gen, n=50000, batchsize=100):
     ims = []

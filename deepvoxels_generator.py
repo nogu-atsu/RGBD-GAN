@@ -1,13 +1,13 @@
-import sys
-import os
 import math
+import os
+import sys
+
 import chainer
 import chainer.functions as F
 import chainer.links as L
-from chainer.link_hooks.spectral_normalization import SpectralNormalization
-from chainer import Variable
-from chainer.backends import cuda
 import numpy as np
+from chainer import Variable
+from chainer.link_hooks.spectral_normalization import SpectralNormalization
 
 sys.path.append(os.path.dirname(__file__))
 sys.path.append(os.path.abspath(os.path.dirname(__file__)) + os.path.sep + os.path.pardir)
@@ -17,7 +17,7 @@ from common.networks.component.pggan import EqualizedConv2d, EqualizedLinear, fe
 from common.networks.component.auxiliary_links import LinkLeakyRelu
 from common.networks.component.normalization.adain import AdaIN
 from common.networks.component.scale import Scale
-from common.networks.component.rescale import upscale2x, downscale2x, blur, upscale2x3d, downscale2x3d, blur3d
+from common.networks.component.rescale import upscale2x, downscale2x, blur, upscale2x3d, blur3d
 
 from deepvoxel.deepvoxel import DeepVoxels
 from deepvoxel.projection import ProjectionHelper
@@ -399,35 +399,15 @@ class Discriminator(chainer.Chain):
                 DiscriminatorBlock(ch, ch, enable_blur=enable_blur, sn=sn),
                 DiscriminatorBlock(ch, ch, enable_blur=enable_blur, sn=sn),
                 DiscriminatorBlock(ch // 2, ch, enable_blur=enable_blur, sn=sn),
-                # DiscriminatorBlock(ch // 4, ch // 2, enable_blur=enable_blur, sn=sn),
-                # DiscriminatorBlock(ch // 8, ch // 4, enable_blur=enable_blur, sn=sn),
-                # DiscriminatorBlock(ch // 16, ch // 8, enable_blur=enable_blur, sn=sn),
-                # DiscriminatorBlock(ch // 32, ch // 16, enable_blur=enable_blur, sn=sn),
             )
             if not sn:
                 self.ins = chainer.ChainList(
-                    # EqualizedConv2d(3, ch, 1, 1, 0),
-                    # EqualizedConv2d(3, ch, 1, 1, 0),
-                    # EqualizedConv2d(3, ch, 1, 1, 0),
-                    # EqualizedConv2d(3, ch, 1, 1, 0),
                     EqualizedConv2d(3, ch // 2, 1, 1, 0),
-                    # EqualizedConv2d(3, ch // 4, 1, 1, 0),
-                    # EqualizedConv2d(3, ch // 8, 1, 1, 0),
-                    # EqualizedConv2d(3, ch // 16, 1, 1, 0),
-                    # EqualizedConv2d(3, ch // 32, 1, 1, 0),
                 )
             else:
                 w = chainer.initializers.GlorotUniform(math.sqrt(2))
                 self.ins = chainer.ChainList(
-                    # L.Convolution2D(3, ch, 1, 1, 0, initialW=w).add_hook(SpectralNormalization()),
-                    # L.Convolution2D(3, ch, 1, 1, 0, initialW=w).add_hook(SpectralNormalization()),
-                    # L.Convolution2D(3, ch, 1, 1, 0, initialW=w).add_hook(SpectralNormalization()),
-                    # L.Convolution2D(3, ch, 1, 1, 0, initialW=w).add_hook(SpectralNormalization()),
                     L.Convolution2D(3, ch // 2, 1, 1, 0, initialW=w).add_hook(SpectralNormalization()),
-                    # L.Convolution2D(3, ch // 4, 1, 1, 0, initialW=w).add_hook(SpectralNormalization()),
-                    # L.Convolution2D(3, ch // 8, 1, 1, 0, initialW=w).add_hook(SpectralNormalization()),
-                    # L.Convolution2D(3, ch // 16, 1, 1, 0, initialW=w).add_hook(SpectralNormalization()),
-                    # L.Convolution2D(3, ch // 32, 1, 1, 0, initialW=w).add_hook(SpectralNormalization()),
                 )
 
             self.enable_blur = enable_blur

@@ -1,24 +1,21 @@
 #!/usr/bin/env python3
 import argparse
-import os
-import sys
-import re
-import json
-
 import glob
-import numpy as np
-from PIL import Image
+import os
+import re
+import sys
 
 import chainer
 import chainer.cuda
+import cupy
+import numpy as np
+from PIL import Image
 from chainer import Variable
 from chainer import training
 from chainer.datasets import TransformDataset
 from chainer.training import extension
 from chainer.training import extensions
-import cupy
 from scipy import io
-
 from tqdm import tqdm
 
 try:
@@ -32,8 +29,6 @@ except:  # pylint:disable=bare-except
     mpi_available = False
 
 import yaml
-
-# from chainer_profutil import create_marked_profile_optimizer
 
 sys.path.append(os.path.dirname(__file__))
 sys.path.append(os.path.abspath(os.path.dirname(__file__)) + os.path.sep + os.path.pardir)
@@ -357,7 +352,8 @@ def make_shapenet_car_dataset(reedbush=False, iclr_final=False):
             assert False
     else:
         if os.path.exists(f"/data/unagi0/noguchi/dataset/rendered_shapenet/car{iclr_final}/car128.npy"):
-            return np.load(f"/data/unagi0/noguchi/dataset/rendered_shapenet/car{iclr_final}/car128.npy").astype("float32")
+            return np.load(f"/data/unagi0/noguchi/dataset/rendered_shapenet/car{iclr_final}/car128.npy").astype(
+                "float32")
         else:
             paths = sorted(glob.glob(f"/data/unagi0/noguchi/dataset/rendered_shapenet/car{iclr_final}/*.png"))
             imgs = []
@@ -778,13 +774,5 @@ def main():
         chainer.serializers.save_npz(config.out + '/' + model_name + '_latest.npz', model)
 
 
-import pdb, traceback, sys, code
-
 if __name__ == '__main__':
     main()
-    # try:
-    #     main()
-    # except:
-    #     type, value, tb = sys.exc_info()
-    #     traceback.print_exc()
-    #     pdb.post_mortem(tb)

@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 import chainer
-import chainer.functions as F
-from chainer import Variable
-import numpy as np
-from config import get_lr_scale_factor
-from scipy.stats import truncnorm
-
 import chainer.computational_graph as c
+import chainer.functions as F
+import numpy as np
+from chainer import Variable
 
 from common.loss_functions import loss_func_dcgan_dis, loss_func_dcgan_gen, loss_l2, LossFuncRotate, SmoothDepth
 from common.utils.copy_param import soft_copy_param
@@ -85,8 +82,6 @@ class DeepVoxelsUpdater(chainer.training.updaters.StandardUpdater):
         # Stage manager
         self.config = config
 
-        # Parse kwargs for updater
-        # self.use_cleargrads = kwargs.pop('use_cleargrads')
         self.smoothing = kwargs.pop('smoothing')
         self.lambda_gp = kwargs.pop('lambda_gp')
 
@@ -108,11 +103,7 @@ class DeepVoxelsUpdater(chainer.training.updaters.StandardUpdater):
         return self.get_stage()
 
     def get_stage(self):
-        # for i, interval in enumerate(self.stage_interval):
-        #     if self.iteration + 1 <= interval:
-        #         return i - 1 + (self.iteration - self.stage_interval[i - 1]) / (interval - self.stage_interval[i - 1])
         return 8.5
-        # return min(self.iteration / self.config.stage_interval+6, self.config.max_stage - 1e-8)
 
     def get_x_real_data(self, batch, batch_size):
         xp = self.gen.xp
@@ -210,7 +201,7 @@ class DeepVoxelsUpdater(chainer.training.updaters.StandardUpdater):
                                                        random_camera_matrices[:batch_size // 2],
                                                        x_fake[batch_size // 2:],
                                                        random_camera_matrices[batch_size // 2:])
-            # loss_rotate *= 10
+
             loss_rotate += F.mean(F.relu(self.config.depth_min - x_fake[:, -1]) ** 2) * \
                            self.config.lambda_depth  # make depth larger
             chainer.report({'loss_rotate': loss_rotate}, self.gen)
@@ -218,20 +209,12 @@ class DeepVoxelsUpdater(chainer.training.updaters.StandardUpdater):
             lambda_loss_rotate = self.config.lambda_loss_rotate if self.config.lambda_loss_rotatec else 0.3
             loss_gen = loss_gen + loss_rotate * lambda_loss_rotate
 
-        #     loss_rotate += - 0.2 * F.log(
-        #         F.mean((F.mean(1 / x_fake[:, -1].reshape(batch_size, -1) ** 2, axis=1) -
-        #                 F.mean(1 / x_fake[:, -1].reshape(batch_size, -1), axis=1) ** 2) + 1e-3))
-        # loss_depth = self.loss_smooth_depth(x_fake[:, -1:]) * 20
-        # loss_dsgan = loss_func_dsgan(x_fake, z_fake, theta)  # Diversity sensitive gan in ICLR2019
         if chainer.global_config.debug:
             g = c.build_computational_graph(loss_gen)
             with open('out_loss_gen', 'w') as o:
                 o.write(g.dump())
         # assert not xp.isnan(loss_dsgan.data)
         loss_gen.backward()
-        # print("grad", self.gen.outs[3].c.W.array[-1].mean(), self.gen.outs[3].c.W.array[-1].std())
-        # loss_depth.backward()
-        # loss_dsgan.backward()
         opt_g_m.update()
         opt_g_g.update()
         del loss_gen, y_fake, x_fake

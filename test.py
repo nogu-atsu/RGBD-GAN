@@ -1,23 +1,14 @@
-# just for visualizatio
+# just for visualization
 
 import os
 import sys
-import re
-import json
-
-import glob
-import numpy as np
-from PIL import Image
-import matplotlib.pyplot as plt
-import cv2
 
 import chainer
-from chainer import Variable
-
+import cv2
+import matplotlib.pyplot as plt
+import numpy as np
 import yaml
-from net import Discriminator, StyleGenerator, MappingNetwork
-
-# from chainer_profutil import create_marked_profile_optimizer
+from chainer import Variable
 
 sys.path.append(os.path.dirname(__file__))
 sys.path.append(os.path.abspath(os.path.dirname(__file__)) + os.path.sep + os.path.pardir)

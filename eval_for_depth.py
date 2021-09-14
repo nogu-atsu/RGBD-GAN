@@ -1,29 +1,18 @@
-# just for visualizatio
-
-import os
-import sys
-import re
-import json
-
-import glob
-import numpy as np
-from PIL import Image
-import cv2
-from tqdm import tqdm
+# just for visualization
 
 import chainer
-from chainer import Variable
-from chainer import functions as F
-
+import numpy as np
 import yaml
-from net import Discriminator, StyleGenerator, MappingNetwork
-
-# from chainer_profutil import create_marked_profile_optimizer
+from chainer import Variable
+from tqdm import tqdm
 
 import utils.yaml_utils as yaml_utils
-from updater_deepvoxels import get_camera_matries
 from common.loss_functions import LossFuncRotate
 from train_rgbd import setup_generator, CameraParamPrior
+from updater_deepvoxels import get_camera_matries
+
+
+# from chainer_profutil import create_marked_profile_optimizer
 
 
 def make_image(gen, prior, stage=6.5, n_images=20, name="", ignore_white=False, n_views=100, origin=np.zeros(3),

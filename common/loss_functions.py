@@ -1,16 +1,7 @@
-import numpy as np
 import chainer
 import chainer.functions as F
+import numpy as np
 from chainer import Variable
-from common.networks.component.pggan import EqualizedConv2d
-
-
-def loss_l1(h, t):
-    return F.sum(F.absolute(h - t)) / np.prod(h.data.shape)
-
-
-def loss_l1_no_avg(h, t):
-    return F.sum(F.absolute(h - t)) / np.prod(h.data.shape[1:])
 
 
 def loss_l2(h, t):
@@ -92,22 +83,6 @@ class LossFuncRotate:
         z = z.reshape(z.shape[0], 1, -1)  # b x 1 x hw
         z_rot = z_rot.reshape(z_rot.shape[0], 1, -1)
 
-        # if theta.ndim == 1:
-        #     delta_theta = theta - theta_rot
-        #     # rotation matrix: b x 3 x 3
-        #     R = xp.array([[xp.ones_like(delta_theta), xp.zeros_like(delta_theta), xp.zeros_like(delta_theta)],
-        #                   [xp.zeros_like(delta_theta), xp.cos(delta_theta), -xp.sin(delta_theta)],
-        #                   [xp.zeros_like(delta_theta), xp.sin(delta_theta), xp.cos(delta_theta)]],
-        #                  dtype="float32").transpose(2, 0, 1)
-        #     inv_R = xp.array([[xp.ones_like(delta_theta), xp.zeros_like(delta_theta), xp.zeros_like(delta_theta)],
-        #                       [xp.zeros_like(delta_theta), xp.cos(delta_theta), xp.sin(delta_theta)],
-        #                       [xp.zeros_like(delta_theta), -xp.sin(delta_theta), xp.cos(delta_theta)]],
-        #                      dtype="float32").transpose(2, 0, 1)
-        #
-        #     # parallel movement: b x 3 x 1
-        #     t = xp.array([xp.zeros_like(delta_theta), -xp.sin(delta_theta), 1 - xp.cos(delta_theta)],
-        #                  dtype="float32").transpose()[:, :, None]
-        # else:
         if isinstance(theta, Variable):
             theta = theta.array
             theta_rot = theta_rot.array
@@ -289,9 +264,3 @@ class SmoothDepth:
         edge = F.convolution_2d(x, self.laplacian)
         loss = F.exp(-F.absolute(edge)) * depth_smoothness
         return F.mean(loss)
-
-
-def luminance_gradient(img):
-    fx = (img[:, :, 1:-1, 2:] - img[:, :, 1:-1, :-2]) / 2
-    fy = (img[:, :, 2:, 1:-1] - img[:, :, :-2, 1:-1]) / 2
-    return fx, fy

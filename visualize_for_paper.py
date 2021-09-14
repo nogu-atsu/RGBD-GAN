@@ -1,24 +1,16 @@
-# just for visualizatio
+# just for visualization
 
 import os
 import sys
-import re
-import json
-
-import glob
-import numpy as np
-from PIL import Image
-import matplotlib.pyplot as plt
-import cv2
 
 import chainer
+import matplotlib.pyplot as plt
+import numpy as np
+import yaml
+from PIL import Image
 from chainer import Variable
 
-import yaml
-from net import Discriminator, StyleGenerator, MappingNetwork
 from updater_deepvoxels import get_camera_matries
-
-# from chainer_profutil import create_marked_profile_optimizer
 
 sys.path.append(os.path.dirname(__file__))
 sys.path.append(os.path.abspath(os.path.dirname(__file__)) + os.path.sep + os.path.pardir)

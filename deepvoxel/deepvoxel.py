@@ -1,13 +1,9 @@
 import chainer
-from chainer import links as L
-from chainer import functions as F
-from chainer.backends import cuda
-
 import numpy as np
+from chainer import functions as F
+from chainer import links as L
 
-from deepvoxel.projection import ProjectionHelper
-from common.networks.component.pggan import EqualizedConv3d, EqualizedConv2d, EqualizedLinear
-from net import SynthesisBlock
+from common.networks.component.pggan import EqualizedConv3d, EqualizedConv2d
 
 
 class ReplicationPad:
@@ -217,19 +213,6 @@ class UpBlock(chainer.Chain):
                                       stride=2,
                                       pad=1,
                                       nobias=False if norm is None else True)]
-        # elif upsampling_mode == 'bilinear':
-        #     net += [nn.UpsamplingBilinear2d(scale_factor=2)]
-        #     net += [
-        #         Conv2dSame(in_channels, out_channels, kernel_size=3, bias=True if norm is None else False)]
-        # elif upsampling_mode == 'nearest':
-        #     net += [nn.UpsamplingNearest2d(scale_factor=2)]
-        #     net += [
-        #         Conv2dSame(in_channels, out_channels, kernel_size=3, bias=True if norm is None else False)]
-        # elif upsampling_mode == 'shuffle':
-        #     net += [nn.PixelShuffle(upscale_factor=2)]
-        #     net += [
-        #         Conv2dSame(in_channels // 4, out_channels, kernel_size=3,
-        #                    bias=True if norm is None else False)]
         else:
             raise ValueError("Unknown upsampling mode!")
 
@@ -457,108 +440,6 @@ def num_divisible_by_2(number):
         i += 1
 
     return i
-
-
-# class IntegrationNet(chainer.Chain):
-#     '''The 3D integration net integrating new observations into the Deepvoxels grid.
-#     '''
-#
-#     def __init__(self, nf0, coord_conv, use_dropout, per_feature, grid_dim):
-#         super().__init__()
-#
-#         self.coord_conv = coord_conv
-#         if self.coord_conv:
-#             in_channels = nf0 + 3
-#         else:
-#             in_channels = nf0
-#
-#         if per_feature:
-#             weights_channels = nf0
-#         else:
-#             weights_channels = 1
-#
-#         self.use_dropout = use_dropout
-#         with self.init_scope():
-#             self.new_integration = chainer.Sequential(
-#                 ReplicationPad(1),
-#                 L.Convolution3D(in_channels, nf0, ksize=3, pad=0, nobias=False),
-#                 lambda x: F.dropout(x, 0.2)
-#             )
-#
-#             self.old_integration = chainer.Sequential(
-#                 ReplicationPad(1),
-#                 L.Convolution3D(in_channels, nf0, ksize=3, pad=0, nobias=False),
-#                 lambda x: F.dropout(x, 0.2)
-#             )
-#
-#             self.update_old_net = chainer.Sequential(
-#                 ReplicationPad(1),
-#                 L.Convolution3D(in_channels, weights_channels, ksize=3, pad=0, nobias=False),
-#             )
-#             self.update_new_net = chainer.Sequential(
-#                 ReplicationPad(1),
-#                 L.Convolution3D(in_channels, weights_channels, ksize=3, pad=0, nobias=True),
-#             )
-#
-#             self.reset_old_net = chainer.Sequential(
-#                 ReplicationPad(1),
-#                 L.Convolution3D(in_channels, weights_channels, ksize=3, pad=0, nobias=False),
-#             )
-#             self.reset_new_net = chainer.Sequential(
-#                 ReplicationPad(1),
-#                 L.Convolution3D(in_channels, weights_channels, ksize=3, pad=0, nobias=True),
-#             )
-#
-#         self.sigmoid = F.sigmoid
-#         self.relu = F.relu
-#
-#         coord_conv_volume = np.mgrid[-grid_dim // 2:grid_dim // 2,
-#                             -grid_dim // 2:grid_dim // 2,
-#                             -grid_dim // 2:grid_dim // 2]
-#
-#         coord_conv_volume = np.stack(coord_conv_volume, axis=0).astype(np.float32)[None, :, :, :, :]
-#         self.coord_conv_volume = coord_conv_volume / grid_dim
-#         self.register_persistent('coord_conv_volume')
-#         self.counter = 0
-#
-#     def forward(self, new_observation, old_state, writer):
-#
-#         old_state_coord = F.concat([old_state, self.coord_conv_volume], axis=1)
-#         new_observation_coord = F.concat([new_observation, self.coord_conv_volume], axis=1)
-#
-#         reset = self.sigmoid(self.reset_old_net(old_state_coord) + self.reset_new_net(new_observation_coord))
-#         update = self.sigmoid(self.update_old_net(old_state_coord) + self.update_new_net(new_observation_coord))
-#
-#         final = self.relu(self.new_integration(new_observation_coord) + self.old_integration(reset * old_state_coord))
-#
-#         if not self.counter % 100:
-#             # Plot the volumes
-#             fig = plt.figure()
-#             ax = fig.add_subplot(111, projection='3d')
-#             update_values = update.mean(dim=1).squeeze().cpu().detach().numpy()
-#             x, y, z = np.where(update_values)
-#             x, y, z = x[::3], y[::3], z[::3]
-#             ax.scatter(x, y, z, s=update_values[x, y, z] * 5)
-#
-#             writer.add_figure("update_gate",
-#                               fig,
-#                               self.counter,
-#                               close=True)
-#
-#             fig = plt.figure()
-#             ax = fig.add_subplot(111, projection='3d')
-#             reset_values = reset.mean(dim=1).squeeze().cpu().detach().numpy()
-#             x, y, z = np.where(reset_values)
-#             x, y, z = x[::3], y[::3], z[::3]
-#             ax.scatter(x, y, z, s=reset_values[x, y, z] * 5)
-#             writer.add_figure("reset_gate",
-#                               fig,
-#                               self.counter,
-#                               close=True)
-#         self.counter += 1
-#
-#         result = ((1 - update) * old_state + update * final)
-#         return result
 
 
 class OcclusionNet(chainer.Chain):
@@ -913,90 +794,6 @@ class UpsamplingNet(chainer.Chain):
         return self.ups(input)
 
 
-class RenderingNet(chainer.Chain):
-    def __init__(self,
-                 nf0,
-                 in_channels,
-                 input_resolution,
-                 img_sidelength):
-        super().__init__()
-
-        num_down_unet = num_divisible_by_2(input_resolution)
-        num_upsampling = num_divisible_by_2(img_sidelength) - num_down_unet
-
-        net = [
-            Unet(in_channels=in_channels,
-                 out_channels=3 if num_upsampling <= 0 else 4 * nf0,
-                 outermost_linear=True if num_upsampling <= 0 else False,
-                 use_dropout=True,
-                 dropout_prob=0.1,
-                 nf0=nf0 * (2 ** num_upsampling),
-                 norm=L.BatchNormalization,
-                 max_channels=8 * nf0,
-                 num_down=num_down_unet)
-        ]
-
-        if num_upsampling > 0:
-            net += [
-                UpsamplingNet(per_layer_out_ch=num_upsampling * [nf0],
-                              in_channels=4 * nf0,
-                              upsampling_mode='transpose',
-                              use_dropout=True,
-                              dropout_prob=0.1),
-                Conv2dSame(nf0, out_channels=nf0 // 2, kernel_size=3, bias=False),
-                L.BatchNormalization(nf0 // 2),
-                F.relu,
-                Conv2dSame(nf0 // 2, 3, kernel_size=3)
-            ]
-
-        # net += [F.tanh]
-        with self.init_scope():
-            self.net = chainer.Sequential(*net)
-
-    def forward(self, input):
-        return self.net(input)
-
-
-class RenderingNetLight(chainer.Chain):
-    def __init__(self,
-                 nf0,
-                 in_channels,
-                 input_resolution,
-                 img_sidelength):
-        super().__init__()
-
-        num_down_unet = num_divisible_by_2(input_resolution)
-        num_upsampling = num_divisible_by_2(img_sidelength) - num_down_unet
-        assert num_upsampling <= 0
-
-        net = [
-            Conv2dSame(in_channels, in_channels, kernel_size=3, bias=False),
-            L.BatchNormalization(in_channels),
-            F.relu,
-            Conv2dSame(in_channels, 3 if num_upsampling <= 0 else 4 * nf0, kernel_size=3, bias=False)
-        ]
-
-        if num_upsampling > 0:
-            net += [
-                UpsamplingNet(per_layer_out_ch=num_upsampling * [nf0],
-                              in_channels=4 * nf0,
-                              upsampling_mode='transpose',
-                              use_dropout=True,
-                              dropout_prob=0.1),
-                Conv2dSame(nf0, out_channels=nf0 // 2, kernel_size=3, bias=False),
-                L.BatchNormalization(nf0 // 2),
-                F.relu,
-                Conv2dSame(nf0 // 2, 3, kernel_size=3)
-            ]
-
-        # net += [F.tanh]
-        with self.init_scope():
-            self.net = chainer.Sequential(*net)
-
-    def forward(self, input):
-        return self.net(input)
-
-
 class DeepVoxels(chainer.Chain):
     def __init__(self,
                  img_sidelength,
@@ -1041,11 +838,6 @@ class DeepVoxels(chainer.Chain):
         self.near_plane = near_plane
 
         with self.init_scope():
-            # Rendering net is an asymmetric UNet: UNet with skip connections and then straight upsampling
-            # self.rendering_net = RenderingNetLight(nf0=self.nf0,
-            #                                        in_channels=self.n_grid_feats,
-            #                                        input_resolution=self.frustrum_img_dims[0],
-            #                                        img_sidelength=img_sidelength)
             if self.occlusion_type == "deepvoxels":
                 self.occlusion_net = OcclusionNetLight(nf0=self.n_grid_feats,
                                                        occnet_nf=self.occnet_nf,
@@ -1068,30 +860,6 @@ class DeepVoxels(chainer.Chain):
             else:
                 assert False
 
-            # self.integration_net = IntegrationNet(self.n_grid_feats,
-            #                                       use_dropout=True,
-            #                                       coord_conv=True,
-            #                                       per_feature=False,
-            #                                       grid_dim=grid_dims[-1])
-
-            # self.inpainting_net = Unet3d(in_channels=self.n_grid_feats + 3,
-            #                              out_channels=self.n_grid_feats,
-            #                              num_down=2,
-            #                              nf0=self.n_grid_feats,
-            #                              max_channels=4 * self.n_grid_feats)
-
-        # print(100 * "*")
-        # # print("inpainting_net")
-        # # util.print_network(self.inpainting_net)
-        # # print(self.inpainting_net)
-        # print("rendering net")
-        # # util.print_network(self.rendering_net)
-        # print(self.rendering_net)
-        # print("feature extraction net")
-        # # util.print_network(self.feature_extractor)
-        # # print(self.feature_extractor)
-        # print(100 * "*")
-
         # Coordconv volumes
         coord_conv_volume = np.mgrid[-self.grid_dims[0] // 2:self.grid_dims[0] // 2,
                             -self.grid_dims[1] // 2:self.grid_dims[1] // 2,
@@ -1102,14 +870,7 @@ class DeepVoxels(chainer.Chain):
         self.register_persistent('coord_conv_volume')
 
     def forward(self, proj_frustrum_idcs_list, proj_grid_coords_list, deepvoxels, return_foreground_weight=False):
-        # deepvoxelがすでに生成されているとして
-        # dv_new = deepvoxels
-
-        # inpainting_input = F.concat([dv_new,
-        #                              F.tile(self.coord_conv_volume, (dv_new.shape[0], 1, 1, 1, 1))],
-        #                             axis=1)  # coord conv
-        # dv_inpainted = self.inpainting_net(inpainting_input)  # unet
-        dv_inpainted = deepvoxels  # omit inpainting_net
+        dv_inpainted = deepvoxels  # omit inpainting_net from original implementation
         novel_views, depth_maps = list(), list()
         if return_foreground_weight:
             assert self.occlusion_type in ["deepvoxels", "accumulative"], "invalid occlusion type to use background"
@@ -1146,133 +907,3 @@ class DeepVoxels(chainer.Chain):
             return novel_views, depth_maps, foreground_weight
 
         return novel_views, depth_maps
-
-
-def train():
-    print('Begin training...')
-    trgt_views = [xp.array([[-9.96363e-01, -1.47920e-02, 8.39167e-02, -1.25875e-01],
-                            [1.86265e-09, 9.84817e-01, 1.73594e-01, -2.60391e-01],
-                            [8.52104e-02, -1.72963e-01, 9.81236e-01, -1.47185e+00],
-                            [0.00000e+00, 0.00000e+00, 0.00000e+00, 1.00000e+00]], dtype="float32")]
-    # trgt_views, nearest_view = dataloader.__next__()
-    # backproj_mapping = projection.comp_lifting_idcs(camera_to_world=nearest_view['pose'].squeeze().to(device),
-    #                                                 grid2world=grid_origin)
-    deepvoxels = xp.zeros((1, 64, 32, 32, 32), dtype="float32")
-
-    proj_mappings = list()
-    for i in range(len(trgt_views)):
-        proj_mappings.append(projection.compute_proj_idcs(trgt_views[i],
-                                                          grid2world=grid_origin))
-
-    # lift_volume_idcs, lift_img_coords = backproj_mapping
-
-    proj_frustrum_idcs, proj_grid_coords = list(zip(*proj_mappings))
-
-    outputs, depth_maps = model(proj_frustrum_idcs, proj_grid_coords, deepvoxels)
-
-
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--gpu', type=int, default=0)
-    # parser.add_argument('--train_test', type=str, required=True,
-    #                     help='Whether to run training or testing. Options are \"train\" or \"test\".')
-    # parser.add_argument('--data_root', required=True,
-    #                     help='Path to directory that holds the object data. See dataio.py for directory structure etc..')
-    # parser.add_argument('--logging_root', required=True,
-    #                     help='Path to directory where to write tensorboard logs and checkpoints.')
-
-    parser.add_argument('--experiment_name', type=str, default='', help='(optional) Name for experiment.')
-    parser.add_argument('--max_epoch', type=int, default=400, help='Maximum number of epochs to train for.')
-    parser.add_argument('--lr', type=float, default=0.0004, help='Learning rate.')
-    parser.add_argument('--l1_weight', type=float, default=200, help='Weight of l1 loss.')
-    parser.add_argument('--sampling_pattern', type=str, default='skip_2', required=False,
-                        help='Whether to use \"all\" images or whether to skip n images (\"skip_1\" picks every 2nd image.')
-
-    parser.add_argument('--img_sidelength', type=int, default=512,
-                        help='Sidelength of generated images. Default 512. Only less than native resolution of images is recommended.')
-
-    parser.add_argument('--no_occlusion_net', action='store_true', default=False,
-                        help='Disables occlusion net and replaces it with a fully convolutional 2d net.')
-    parser.add_argument('--num_trgt', type=int, default=2, required=False,
-                        help='How many novel views will be generated at training time.')
-
-    parser.add_argument('--checkpoint', default='',
-                        help='Path to a checkpoint to load model weights from.')
-    parser.add_argument('--start_epoch', type=int, default=0,
-                        help='Start epoch')
-
-    parser.add_argument('--grid_dim', type=int, default=32,
-                        help='Grid sidelength. Default 32.')
-    parser.add_argument('--num_grid_feats', type=int, default=64,
-                        help='Number of features stored in each voxel.')
-    parser.add_argument('--nf0', type=int, default=64,
-                        help='Number of features in outermost layer of U-Net architectures.')
-    parser.add_argument('--near_plane', type=float, default=np.sqrt(3) / 2,
-                        help='Position of the near plane.')
-
-    opt = parser.parse_args()
-    print('\n'.join(["%s: %s" % (key, value) for key, value in vars(opt).items()]))
-
-    cuda.get_device_from_id(opt.gpu).use()
-    xp = cuda.cupy
-
-    input_image_dims = [opt.img_sidelength, opt.img_sidelength]
-    proj_image_dims = [64, 64]  # Height, width of 2d feature map used for lifting and rendering.
-
-    # Read origin of grid, scale of each voxel, and near plane
-    # _, grid_barycenter, scale, near_plane, _ = \
-    #     util.parse_intrinsics(os.path.join(opt.data_root, 'intrinsics.txt'), trgt_sidelength=input_image_dims[0])
-
-    grid_barycenter = xp.array([0, 0, 0], "float32")
-    scale = 1.
-    near_plane = 0.
-
-    if near_plane == 0.0:
-        near_plane = opt.near_plane
-
-    # Read intrinsic matrix for lifting and projection
-    # lift_intrinsic = util.parse_intrinsics(os.path.join(opt.data_root, 'intrinsics.txt'),
-    #                                        trgt_sidelength=proj_image_dims[0])[0]
-    lift_intrinsic = np.array([[560, 0.0, 256, 0.0],
-                               [0.0, 560, 256, 0.0],
-                               [0.0, 0.0, 1.0, 0.0],
-                               [0.0, 0.0, 0.0, 1.0]])
-    proj_intrinsic = lift_intrinsic
-
-    # Set up scale and world coordinates of voxel grid
-    voxel_size = (1. / opt.grid_dim) * 1.1 * scale
-    grid_origin = xp.eye(4, dtype="float32")
-    grid_origin[:3, 3] = grid_barycenter  # ただの単位行列
-
-    # Minimum and maximum depth used for rejecting voxels outside of the cmaera frustrum
-    depth_min = 0.
-    depth_max = opt.grid_dim * voxel_size + near_plane
-    grid_dims = 3 * [opt.grid_dim]
-
-    # Resolution of canonical viewing volume in the depth dimension, in number of voxels.
-    frustrum_depth = int(np.ceil(np.sqrt(3) * grid_dims[-1]))
-
-    model = DeepVoxels(lifting_img_dims=proj_image_dims,
-                       frustrum_img_dims=proj_image_dims,
-                       grid_dims=grid_dims,
-                       use_occlusion_net=not opt.no_occlusion_net,
-                       num_grid_feats=opt.num_grid_feats,
-                       nf0=opt.nf0,
-                       img_sidelength=input_image_dims[0]).to_gpu()
-
-    # Projection module
-    projection = ProjectionHelper(projection_intrinsic=proj_intrinsic,
-                                  lifting_intrinsic=lift_intrinsic,
-                                  depth_min=depth_min,
-                                  depth_max=depth_max,
-                                  projection_image_dims=proj_image_dims,
-                                  lifting_image_dims=proj_image_dims,
-                                  grid_dims=grid_dims,
-                                  voxel_size=voxel_size,
-                                  device=None,
-                                  frustrum_depth=frustrum_depth,
-                                  near_plane=near_plane)
-
-    train()
