@@ -44,12 +44,6 @@ def make_image(gen, prior, stage=6.5, n_images=10000, batchsize=100, rgb=False):
     return np.concatenate(imgs, axis=0)
 
 
-def load_models(config):
-    gen_conf = config.models['generator']
-    gen = yaml_utils.load_model(gen_conf['fn'], gen_conf['name'], gen_conf['args'])
-    return gen
-
-
 def resize_image(img, size):
     img_ = []
     for im in img:

@@ -1,9 +1,6 @@
 # !/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
-import sys
-
 import yaml
 
 
@@ -23,30 +20,3 @@ class Config(object):
 
     def __repr__(self):
         return yaml.dump(self.config, default_flow_style=False)
-
-
-def load_dataset(config):
-    dataset = load_module(config.dataset['dataset_fn'],
-                          config.dataset['dataset_name'])
-    return dataset(**config.dataset['args'])
-
-
-def load_module(fn, name):
-    mod_name = os.path.splitext(os.path.basename(fn))[0]
-    mod_path = os.path.dirname(fn)
-    sys.path.insert(0, mod_path)
-    return getattr(__import__(mod_name), name)
-
-
-def load_model(model_fn, model_name, args=None):
-    model = load_module(model_fn, model_name)
-    if args:
-        return model(**args)
-    return model()
-
-
-def load_updater_class(config):
-    return load_module(config.updater['fn'], config.updater['name'])
-
-
-
