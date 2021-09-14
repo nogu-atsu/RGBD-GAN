@@ -15,7 +15,6 @@ from chainer import training
 from chainer.datasets import TransformDataset
 from chainer.training import extension
 from chainer.training import extensions
-from scipy import io
 from tqdm import tqdm
 
 try:
@@ -144,13 +143,6 @@ class RunningHelper(object):
         if is_master:
             record_setting(config.out)
 
-        # Show effective hps
-        # effective_hps = {
-        #     'is_master': self.is_master,
-        #     'dynamic_batch_size': self.dynamic_batch_size
-        # }
-        # self.print_log('Effective hps: {}'.format(effective_hps))
-
     @property
     def keep_smoothed_gen(self):
         return self.config.keep_smoothed_gen and self.is_master
@@ -191,24 +183,6 @@ class RunningHelper(object):
         optimizer.add_hook(chainer.optimizer.GradientClipping(5))
         return optimizer
 
-    # def make_dataset(self, stage_int):
-    #     if self.is_master:
-    #         size = 4 * (2 ** ((stage_int + 1) // 2))
-    #         _dataset = BaseDataset(
-    #             json.load(open(self.config.dataset_config, 'r')),
-    #             '%dx%d' % (size, size),
-    #             [["resize", {"probability": 1, "width": size, "height": size, "resample_filter": "ANTIALIAS"}]]
-    #         )
-    #         self.print_log('Add (master) dataset for size {}'.format(size))
-    #     else:
-    #         _dataset = None
-    #         self.print_log('Add (slave) dataset')
-    #
-    #     if self.use_mpi:
-    #         _dataset = chainermn.scatter_dataset(_dataset, self.comm)
-    #
-    #     return _dataset
-
 
 def crop_square(img):
     w, h = img.size
@@ -233,226 +207,9 @@ def make_dataset(dataset_path, image_path):
         return imgs.astype("float32")
 
 
-def make_ffhq_dataset(reedbush=False):
-    if reedbush:
-        if os.path.exists("/lustre/gk75/k75008/data/cvpr2020/ffhq128.npy"):
-            return np.load("/lustre/gk75/k75008/data/cvpr2020/ffhq128.npy").astype("float32")
-        else:
-            assert False
-    else:
-        if os.path.exists("/data/unagi0/noguchi/dataset/ffhq-dataset/ffhq128.npy"):
-            return np.load("/data/unagi0/noguchi/dataset/ffhq-dataset/ffhq128.npy").astype("float32")
-        else:
-            paths = glob.glob("/data/unagi0/noguchi/dataset/ffhq-dataset/thumbnails128x128/*.png")
-            imgs = []
-            for p in tqdm(paths):
-                img = Image.open(p)
-                img = np.array(img).transpose(2, 0, 1)
-                imgs.append(img)
-            imgs = np.array(imgs, dtype="uint8")
-            np.save("/data/unagi0/noguchi/dataset/ffhq-dataset/ffhq128.npy", imgs)
-            return imgs.astype("float32")
-
-
-def make_car_dataset(reedbush=False, ratio=0.6, ):
-    if reedbush:
-        if os.path.exists("/lustre/gk75/k75008/data/cvpr2020/cars_align.npy"):
-            return np.load("/lustre/gk75/k75008/data/cvpr2020/cars_align.npy").astype("float32")
-    else:
-        if os.path.exists(f"/data/unagi0/noguchi/dataset/stanford_cars/cars_align_{ratio}_area.npy"):
-            return np.load(f"/data/unagi0/noguchi/dataset/stanford_cars/cars_align_{ratio}_area.npy").astype("float32")
-        else:
-            dir_name = ["cars_test", "cars_train"]
-            for dn in dir_name:
-                paths = glob.glob(f"/data/unagi0/noguchi/dataset/stanford_cars/{dn}/*.jpg")
-                anno = io.loadmat(f"/data/unagi0/noguchi/dataset/stanford_cars/devkit/{dn}_annos.mat")
-                x1 = np.array([a[0][0] for a in anno["annotations"]['bbox_x1'][0]])
-                x2 = np.array([a[0][0] for a in anno["annotations"]['bbox_x2'][0]])
-                y1 = np.array([a[0][0] for a in anno["annotations"]['bbox_y1'][0]])
-                y2 = np.array([a[0][0] for a in anno["annotations"]['bbox_y2'][0]])
-
-                imgs = []
-                for i in tqdm(range(len(paths))):
-                    img = Image.open(
-                        f"/data/unagi0/noguchi/dataset/stanford_cars/{dn}/{i + 1:0>5d}.jpg").convert('RGB')
-                    h, w = img.size
-                    img = np.array(img)
-                    height = (int(y2[i] - y1[i]) * int(x2[i] - x1[i]) / ratio) ** 0.5
-                    x_center = (x1[i] + x2[i]) / 2
-                    y_center = (y1[i] + y2[i]) / 2
-                    x_1 = int(x_center - height / 2)
-                    x_2 = int(x_center + height / 2)
-                    y_1 = int(y_center - height / 2)
-                    y_2 = int(y_center + height / 2)
-
-                    pad = ((max(0, -y_1), max(y_2 - w, 0)), (max(0, -x_1), max(x_2 - h, 0)), (0, 0))
-                    img = np.pad(img[max(0, y_1):min(w, y_2), max(0, x_1):min(h, x_2)], pad, "edge")
-
-                    img = Image.fromarray(img)
-                    if min(img.size) < 128:
-                        continue
-                    img = img.resize((128, 128), Image.LANCZOS)
-                    img = np.array(img).transpose(2, 0, 1)
-                    imgs.append(img)
-            imgs = np.array(imgs, dtype="uint8")
-            np.save(f"/data/unagi0/noguchi/dataset/stanford_cars/cars_align_{ratio}_area.npy", imgs)
-            return imgs.astype("float32")
-
-
-def make_bedroom_dataset(reedbush=False):
-    if reedbush:
-        if os.path.exists("/lustre/gk75/k75008/data/cvpr2020/bedroom128.npy"):
-            return np.load("/lustre/gk75/k75008/data/cvpr2020/bedroom128.npy").astype("float32")
-    else:
-        if os.path.exists("/data/unagi0/noguchi/dataset/lsun/bedroom128.npy"):
-            return np.load("/data/unagi0/noguchi/dataset/lsun/bedroom128.npy").astype("float32")
-        else:
-            paths = glob.glob("/data/unagi0/noguchi/dataset/lsun/train128/*.jpg")
-            imgs = []
-            for p in tqdm(paths[:100000]):
-                img = Image.open(p)
-                img = np.array(img).transpose(2, 0, 1)
-                imgs.append(img)
-            imgs = np.array(imgs, dtype="uint8")
-            np.save("/data/unagi0/noguchi/dataset/lsun/bedroom128.npy", imgs)
-            return imgs.astype("float32")
-
-
-def make_chair_dataset(reedbush=False):
-    if reedbush:
-        if os.path.exists("/lustre/gk75/k75008/data/cvpr2020/chair128.npy"):
-            return np.load("/lustre/gk75/k75008/data/cvpr2020/chair128.npy").astype("float32")
-    else:
-        if os.path.exists("/data/unagi0/noguchi/dataset/rendered_shapenet/chair/chair128.npy"):
-            return np.load("/data/unagi0/noguchi/dataset/rendered_shapenet/chair/chair128.npy").astype("float32")
-        else:
-            paths = sorted(glob.glob("/data/unagi0/noguchi/dataset/rendered_shapenet/chair/*.png"))
-            imgs = []
-            for p in tqdm(paths[:400000]):
-                if "png0001.png" in p:
-                    continue
-                img = Image.open(p)
-                img.load()
-                background = Image.new("RGB", img.size, (255, 255, 255))
-                background.paste(img, mask=img.split()[3])
-                img = background
-                img = np.array(img).transpose(2, 0, 1)
-                imgs.append(img)
-            imgs = np.array(imgs, dtype="uint8")
-            np.save("/data/unagi0/noguchi/dataset/rendered_shapenet/chair/chair128.npy", imgs)
-            return imgs.astype("float32")
-
-
-def make_shapenet_car_dataset(reedbush=False, iclr_final=False):
-    iclr_final = "_iclr_final" * iclr_final
-    if reedbush:
-        if os.path.exists("/lustre/gk75/k75008/data/cvpr2020/shapenet_car128.npy"):
-            return np.load("/lustre/gk75/k75008/data/cvpr2020/shapenet_car128.npy").astype("float32")
-        else:
-            assert False
-    else:
-        if os.path.exists(f"/data/unagi0/noguchi/dataset/rendered_shapenet/car{iclr_final}/car128.npy"):
-            return np.load(f"/data/unagi0/noguchi/dataset/rendered_shapenet/car{iclr_final}/car128.npy").astype(
-                "float32")
-        else:
-            paths = sorted(glob.glob(f"/data/unagi0/noguchi/dataset/rendered_shapenet/car{iclr_final}/*.png"))
-            imgs = []
-            for p in tqdm(paths[:400000]):
-                if "png0001.png" in p:
-                    continue
-                img = Image.open(p)
-                img.load()
-                background = Image.new("RGB", img.size, (255, 255, 255))
-                background.paste(img, mask=img.split()[3])
-                img = background
-                img = np.array(img).transpose(2, 0, 1)
-                imgs.append(img)
-            imgs = np.array(imgs, dtype="uint8")
-            np.save(f"/data/unagi0/noguchi/dataset/rendered_shapenet/car{iclr_final}/car128.npy", imgs)
-            return imgs.astype("float32")
-
-
-def make_shapenet_airplane_dataset():
-    if os.path.exists("/data/unagi0/noguchi/dataset/rendered_shapenet/airplane/airplane128.npy"):
-        return np.load("/data/unagi0/noguchi/dataset/rendered_shapenet/airplane/airplane128.npy").astype("float32")
-    else:
-        paths = sorted(glob.glob("/data/unagi0/noguchi/dataset/rendered_shapenet/airplane/*.png"))
-        imgs = []
-        for p in tqdm(paths[:400000]):
-            if "png0001.png" in p:
-                continue
-            img = Image.open(p)
-            img.load()
-            background = Image.new("RGB", img.size, (255, 255, 255))
-            background.paste(img, mask=img.split()[3])
-            img = background
-            img = np.array(img).transpose(2, 0, 1)
-            imgs.append(img)
-        imgs = np.array(imgs, dtype="uint8")
-        np.save("/data/unagi0/noguchi/dataset/rendered_shapenet/airplane/airplane128.npy", imgs)
-        return imgs.astype("float32")
-
-
 def prepare_dataset(config):
     dataset = make_dataset(config.dataset_path, config.image_path)
-    # if config.dataset == "ffhq":
-    #     dataset = make_ffhq_dataset(config.reedbush)
-    # elif config.dataset == "bedroom":
-    #     dataset = make_bedroom_dataset(config.reedbush)
-    # elif config.dataset in ["car", "car_0.6", "car_0.35"]:
-    #     if config.dataset == "car":
-    #         ratio = 0.6
-    #     else:
-    #         ratio = float(config.dataset.split("_")[1])
-    #     dataset = make_car_dataset(config.reedbush, ratio=ratio)
-    # elif config.dataset == "chair":
-    #     dataset = make_chair_dataset()
-    # elif config.dataset in ["shapenet_car", "shapenet_car_iclr_final"]:
-    #     dataset = make_shapenet_car_dataset(config.reedbush, iclr_final=("iclr_final" in config.dataset))
-    # elif config.dataset == "airplane":
-    #     dataset = make_shapenet_airplane_dataset()
-    # else:
-    #     assert False
-
     return dataset
-
-
-#
-# def update_camera_matrices(mat, axis1, axis2, theta):
-#     """
-#     camera parameters update for get_camera_matrices function
-#     :param mat:
-#     :param axis1: int 0~2
-#     :param axis2: int 0~2
-#     :param theta: np array of rotation degree
-#     :return: camara matrices of minibatch
-#     """
-#     rot = np.zeros_like(mat)
-#     rot[:, range(4), range(4)] = 1
-#     rot[:, axis1, axis1] = np.cos(theta)
-#     rot[:, axis1, axis2] = -np.sin(theta)
-#     rot[:, axis2, axis1] = np.sin(theta)
-#     rot[:, axis2, axis2] = np.cos(theta)
-#     mat = np.matmul(rot, mat)
-#     return mat
-#
-#
-# def get_camera_matries(thetas, order=(1,0,2)):
-#     """
-#     generate camera matrices from thetas
-#     :param thetas: batchsize x 6, [x, y, z_rotation, x, y, z_translation]
-#     :return:
-#     """
-#     mat = np.zeros((len(thetas), 4, 4), dtype="float32")
-#     mat[:, range(4), range(4)] = [1, 1, -1, 1]
-#     mat[:, 2, 3] = 1
-#
-#     for i in order:  # y, x, z_rotation
-#         mat = update_camera_matrices(mat, (i + 1) % 3, (i + 2) % 3, thetas[:, i])
-#
-#     mat[:, :3, 3] = mat[:, :3, 3] + thetas[:, 3:]
-#
-#     return mat
 
 
 class CameraParamPrior:
@@ -576,15 +333,6 @@ def main():
     train_iter = chainer.iterators.SerialIterator(train, config.batchsize)
 
     prior = CameraParamPrior(config)
-    # stage_manager = StageManager(
-    #     stage_interval=running_helper.stage_interval,
-    #     dynamic_batch_size=running_helper.dynamic_batch_size,
-    #     make_dataset_func=running_helper.make_dataset,
-    #     make_iterator_func=make_iterator_func,
-    #     debug_start_instance=config.debug_start_instance)
-
-    # if running_helper.is_master:
-    #    chainer.global_config.debug = True
 
     if config.generator_architecture == "stylegan":
         optimizer = {
@@ -616,9 +364,6 @@ def main():
             "dis": running_helper.make_optimizer(discriminator, config.adam_alpha_d, config.adam_beta1,
                                                  config.adam_beta2)
         }
-
-    # for opt in optimizer.values():
-    #     opt.add_hook(chainer.optimizer_hooks.GradientClipping(0.1))
 
     updater_args = {
         "models": models,
