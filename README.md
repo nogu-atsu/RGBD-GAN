@@ -10,7 +10,6 @@ tqdm
 chainer >= 7.0.0
 cupy >= 7.0.0
 ```
-and other
 
 ## dataset preparation
 Resize all the training images to 128x128 and put them in an arbitrary directory.
