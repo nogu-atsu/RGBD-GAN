@@ -32,7 +32,6 @@ import yaml
 sys.path.append(os.path.dirname(__file__))
 sys.path.append(os.path.abspath(os.path.dirname(__file__)) + os.path.sep + os.path.pardir)
 
-from common.utils.record import record_setting
 from common.utils.save_images import convert_batch_images
 
 import utils.yaml_utils as yaml_utils
@@ -139,9 +138,6 @@ class RunningHelper(object):
 
         self.is_master = is_master = not self.use_mpi or (self.use_mpi and comm.rank == 0)
 
-        # Early works
-        if is_master:
-            record_setting(config.out)
 
     @property
     def keep_smoothed_gen(self):
