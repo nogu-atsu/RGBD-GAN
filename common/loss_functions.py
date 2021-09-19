@@ -8,10 +8,6 @@ def loss_l2(h, t):
     return F.sum((h - t) ** 2) / np.prod(h.data.shape)
 
 
-def loss_l2_no_avg(h, t):
-    return F.sum((h - t) ** 2) / np.prod(h.data.shape[1:])
-
-
 def loss_func_dcgan_gen(y_fake, focal_loss_gamma=0.):
     if focal_loss_gamma is None:
         focal_loss_gamma = 0.
@@ -188,7 +184,6 @@ def inv_warp(K, inv_K, inv_R, t, z, p):
 
 def bilinear(img, zp):
     # should be differentiable
-    # https://arxiv.org/pdf/1904.04998.pdf のocclusion aware lossはRGBに対するlossからdepthに勾配が流れているため
     '''
     :param img: rgbd image b x 4 x h x w
     :param zp: depth * (x, y, 1)
@@ -231,14 +226,6 @@ def bilinear(img, zp):
     warped = (w1[:, None] * img[img_coord, :, u0, v0] + w2[:, None] * img[img_coord, :, u1, v0] +
               w3[:, None] * img[img_coord, :, u0, v1] + w4[:, None] * img[img_coord, :, u1, v1])
     return warped, not_getting_out  # warp先でのrgbd: (bhw x 4), はみ出したかどうか
-
-
-def normal_map(zp, shape, inv_K):
-    # shape: b x h x w
-    xp = chainer.cuda.get_array_module(zp)
-    abs_pos = xp.matmul(inv_K, zp)
-    abs_pos = abs_pos.reshape(*shape, 3)
-    # reflection paddingしてサイズを保って，convolutionする
 
 
 class SmoothDepth:

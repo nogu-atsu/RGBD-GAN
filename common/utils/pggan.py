@@ -1,5 +1,7 @@
 import math
+
 import chainer.functions as F
+
 
 def downsize_real(x_real, stage, max_stage=17):
     assert x_real.shape[2] == x_real.shape[3]
