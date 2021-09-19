@@ -87,27 +87,10 @@ def sample_generate_light(gen, dst, config, rows=8, cols=8, z=None, seed=0, subd
 
         preview_path = preview_dir + '/image_latest.png'
         Image.fromarray(x).save(preview_path)
-        preview_path = preview_dir + '/image{:0>8}.png'.format(trainer.updater.iteration // 2000 * 2000)
+        preview_path = preview_dir + '/image{:0>8}.png'.format(trainer.updater.iteration // 10000 * 10000)
         Image.fromarray(x).save(preview_path)
 
     return make_image
-
-
-def make_iterator_func(dataset, batch_size):
-    return chainer.iterators.MultithreadIterator(dataset, batch_size=batch_size, repeat=True, shuffle=None,
-                                                 n_threads=config.dataset_worker_num)
-
-
-def batch_generate_func(gen, mapping, trainer):
-    def generate(n_images):
-        xp = gen.xp
-        z = Variable(xp.asarray(mapping.make_hidden(n_images)))
-        with chainer.using_config('train', False), chainer.using_config('enable_backprop', False):
-            x = gen(mapping(z), stage=trainer.updater.stage)
-        x = chainer.cuda.to_cpu(x.data)
-        return x
-
-    return generate
 
 
 class RunningHelper(object):
@@ -137,7 +120,6 @@ class RunningHelper(object):
         self.fleet_size, self.comm, self.device = fleet_size, comm, device
 
         self.is_master = is_master = not self.use_mpi or (self.use_mpi and comm.rank == 0)
-
 
     @property
     def keep_smoothed_gen(self):
@@ -418,32 +400,6 @@ def main():
             'iteration', 'elapsed_time', 'stage', 'batch_size', 'image_size', 'gen/loss_adv', 'dis/loss_adv',
             'gen/loss_recon', 'dis/loss_gp', 'gen/loss_rotate', 'gen/loss_occupancy'
         ]
-        if config.fid_interval > 0:
-            assert False, "FID is not supported for debug."
-            # report_keys += 'FID'
-            # fidapi = FIDAPI(config.fid_clfs_type,
-            #                 config.fid_clfs_path,
-            #                 gpu=running_helper.device,
-            #                 load_real_stat=config.fid_real_stat)
-            # trainer.extend(
-            #     fid_extension(fidapi,
-            #                   batch_generate_func(generator, mapping, trainer),
-            #                   seed=config.seed,
-            #                   report_key='FID'
-            #                   ),
-            #     trigger=(config.fid_interval, 'iteration')
-            # )
-            # if running_helper.keep_smoothed_gen:
-            #     report_keys += 'S_FID'
-            #     trainer.extend(
-            #         fid_extension(fidapi,
-            #                       batch_generate_func(smoothed_generator, smoothed_mapping, trainer),
-            #                       seed=config.seed,
-            #                       report_key='S_FID'
-            #                       ),
-            #         trigger=(config.fid_interval, 'iteration')
-            #     )
-
         trainer.extend(extensions.LogReport(keys=report_keys, trigger=(config.display_interval, 'iteration')))
         trainer.extend(extensions.PrintReport(report_keys), trigger=(config.display_interval, 'iteration'))
 

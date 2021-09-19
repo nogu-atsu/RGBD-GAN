@@ -28,14 +28,19 @@ image_path: image_dir/*.png
 ```
 
 
-## commands
-Specify `dataset_path`, `image_path`, and `out` in config files.
+## Training
+Specify `dataset_path`, `image_path` in config files.
+Specify `out` as the destination for saving models and generated images
 
 ```
 python train_rgbd.py -g 0 --config configs/dcgan_shapenet_car.yml
 python train_rgbd.py -g 0 --config configs/stylegan_shapenet_car.yml
 python train_rgbd.py -g 0 --config configs/deepvoxels_shapenet_car.yml
 ```
+
+Generated images will be saved to `[out]/preview`
+
+Depending on the initial value of the weights or seeds, the learning of 3D consistency may fail.
 
 ## paper
 
