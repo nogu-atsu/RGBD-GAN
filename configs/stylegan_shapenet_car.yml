@@ -2,7 +2,6 @@ dataset_path: your_dataset_path  # please change
 image_path: image_dir/*.png  # please change
 
 nvprof: False
-seed: 19260817
 adam_alpha_g: 0.001 # 'alpha in Adam optimizer')
 adam_alpha_d: 0.003 # 'alpha in Adam optimizer')
 adam_beta1: 0.0 # 'beta1 in Adam optimizer')
