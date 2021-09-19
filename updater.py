@@ -303,14 +303,8 @@ class RGBDUpdater(chainer.training.updaters.StandardUpdater):
             x_real_data = x_real_data.astype("float16")
             z_fake_data = z_fake_data.astype("float16")
 
-        # TODO
         # theta->6 DOF
-        if self.config.use_posterior:
-            # theta is a combination of prior and posterior
-            pass
-
-        else:
-            thetas = self.prior.sample(batch_size)
+        thetas = self.prior.sample(batch_size)
 
         # thetas = Variable(xp.array(thetas))
         # # theta -> camera matrix

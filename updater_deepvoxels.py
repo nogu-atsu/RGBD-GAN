@@ -152,13 +152,8 @@ class DeepVoxelsUpdater(chainer.training.updaters.StandardUpdater):
             z_fake_data = z_fake_data.astype("float16")
             z_fake_data2 = z_fake_data.astype("float16")
 
-        # TODO
         # theta->6 DOF
-        if self.config.use_posterior:
-            # theta is a combination of prior and posterior
-            assert False, "not implemented yet"
-        else:
-            thetas = self.prior.sample(batch_size)
+        thetas = self.prior.sample(batch_size)
 
         # theta -> camera matrix
         random_camera_matrices = xp.array(get_camera_matries(thetas), dtype="float32")

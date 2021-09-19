@@ -23,7 +23,6 @@ start_occlusion_aware: 0
 auto_resume: False # 'Whether to automatically resume')
 #
 ch: 256 # '#Channels')
-debug_start_instance: 0 # 'Change starting iteration for debugging.')
 #
 ## architecture
 generator_architecture: deepvoxels # stylegan, dcgan, deepvoxels
@@ -34,9 +33,6 @@ focal_loss_gamma: 2.
 lambda_depth: 10
 depth_min: 0.6
 occlusion_type: accumulative
-
-## use camera parameter's posterior
-use_posterior: False
 
 ## camera parameter prior
 ## rotation angle range (+-radian)
@@ -67,21 +63,12 @@ comm_name: 'pure_nccl' # 'ChainerMN communicator name')
 ## hps (I/O)
 out: 'your_out_dir' # Directory to output the result. please change
 auto_resume_dir: '' # 'Directory for loading the saved models')
-dataset_config: '' # 'Dataset config json')
 
-dataset_worker_num': 12 # 'Number of threads in dataset loader'
 #
 snapshot_interval: 10000 # 'Interval of snapshot')
 evaluation_sample_interval: 50 # 'Interval of evaluation sampling')
 display_interval: 10 # 'Interval of displaying log to console')
 get_model_from_interation: '' # 'Load this iteration (it is a string)')
-#
-## hps FID
-fid_interval: 0 # 'Enable FID when > 0')
-fid_real_stat: '' # 'Save NPZ of real images')
-fid_clfs_type: '' # 'i2v_v5/inception')
-fid_clfs_path: '' # 'classifier path')
-fid_skip_first: False # 'Whether to skip FID calculation when iter = 0')
 #
 ## Style GAN
 style_mixing_rate: 0.0 # ' Style Mixing Prob')

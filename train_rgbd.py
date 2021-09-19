@@ -10,7 +10,6 @@ import chainer.cuda
 import cupy
 import numpy as np
 from PIL import Image
-from chainer import Variable
 from chainer import training
 from chainer.datasets import TransformDataset
 from chainer.training import extension

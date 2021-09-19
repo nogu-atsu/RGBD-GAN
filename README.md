@@ -2,6 +2,11 @@
 
 ## requirements
 ```
+numpy
+Pillow
+pyyaml
+matplotlib
+tqdm
 chainer >= 7.0.0
 cupy >= 7.0.0
 ```
