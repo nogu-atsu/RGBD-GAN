@@ -94,7 +94,6 @@ def mmd(real, fake, sigma=1):
 
 
 def mv(real, fake):
-    # realとfakeの分散の比
     var_real = real.var(axis=0).mean()
     var_fake = fake.var(axis=0).mean()
     return var_fake / var_real

@@ -161,10 +161,8 @@ class DeepVoxelsUpdater(chainer.training.updaters.StandardUpdater):
                                           thetas[:, 3:]], axis=1))
 
         x_real = Variable(x_real_data)
-        # Image.fromarray(convert_batch_images(x_real.data.get(), 4, 4)).save('no_downsized.png')
         x_real = downsize_real(x_real, IMG_SIZE)
         x_real = Variable(x_real.data)
-        # Image.fromarray(convert_batch_images(x_real.data.get(), 4, 4)).save('downsized.png')
         image_size = x_real.shape[2]
 
         x_fake = self.gen(z_fake_data, stage, random_camera_matrices, z2=z_fake_data2, theta=thetas)
