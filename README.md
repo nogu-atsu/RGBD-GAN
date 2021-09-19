@@ -37,9 +37,7 @@ Specify `dataset_path`, `image_path` in config files.
 Specify `out` as the destination for saving models and generated images
 
 ```
-python train_rgbd.py -g 0 --config configs/dcgan_shapenet_car.yml
-python train_rgbd.py -g 0 --config configs/stylegan_shapenet_car.yml
-python train_rgbd.py -g 0 --config configs/deepvoxels_shapenet_car.yml
+python train_rgbd.py -g 0 --config configs/ffhq_stylegan_occlusion.yml
 ```
 
 Generated images will be saved to `[out]/preview`
